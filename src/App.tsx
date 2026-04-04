@@ -164,7 +164,7 @@ export default function App() {
           <div style={{ fontSize:"0.65rem", letterSpacing:"6px", color:"#00ff4166", marginBottom:"0.5rem" }}>WENDER MEDIA ANTI-OPTIMIZATION SUITE</div>
           <h1 style={{ fontSize:"clamp(1.6rem,5vw,2.8rem)", fontWeight:"normal", margin:"0 0 0.3rem", letterSpacing:"4px", textShadow:"0 0 20px #00ff41,0 0 40px #00ff41" }}>{titleText}</h1>
           <div style={{ fontSize:"0.7rem", color:"#00ff4188", letterSpacing:"2px" }}>v6.6.6 -- GUARANTEED TO DESTROY YOUR GOOGLE RANKING IN MINUTES</div>
-          <div style={{ marginTop:"0.8rem", display:"flex", justifyContent:"center", gap:"1.5rem", fontSize:"0.6rem", color:"#00ff4555", flexWrap:"wrap" }}>
+          <div style={{ marginTop:"0.8rem", display:"flex", justifyContent:"center", gap:"1.5rem", fontSize:"0.6rem", color:"#00ff4155", flexWrap:"wrap" }}>
             <span>PANDA SAFE</span><span>PENGUIN CERTIFIED</span><span>HUMMINGBIRD HOSTILE</span><span>GDPR NON-COMPLIANT</span>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function App() {
               })}
             </div>
 
-            <div style={{ borderTop:"1px solid #00ff4122", paddingTop:"1.5rem", textAlign:"center", fontSize:"0.6rem", color:"#00ff4444", letterSpacing:"2px", lineHeight:"2.2" }}>
+            <div style={{ borderTop:"1px solid #00ff4122", paddingTop:"1.5rem", textAlign:"center", fontSize:"0.6rem", color:"#00ff4144", letterSpacing:"2px", lineHeight:"2.2" }}>
               <div>SEO DESTROYER PRO IS NOT RESPONSIBLE FOR LOSS OF TRAFFIC, REVENUE, OR SANITY</div>
               <div>BUILT BY WENDER MEDIA -- 18 YEARS BUILDING WHAT WE NOW KNOW HOW TO DESTROY</div>
               <div style={{ color:"#ff003355", marginTop:"0.3rem" }}>HTTP 418 -- I AM A TEAPOT AND SO IS YOUR SITEMAP</div>
@@ -259,7 +259,7 @@ export default function App() {
           <div style={{ textAlign:"center", padding:"3rem 0", color:"#00ff4133", fontSize:"0.72rem", letterSpacing:"3px" }}>
             <div style={{ fontSize:"3rem", marginBottom:"1rem", filter:"drop-shadow(0 0 20px #00ff41)" }}>{"\u2620"}</div>
             <div>ENTER TARGET URL TO BEGIN DESTRUCTION</div>
-            <div style={{ marginTop:"0.5rem", fontSize:"0.58rem", color:"#00ff4222" }}>TRUSTED BY 0 SATISFIED SEO PROFESSIONALS</div>
+            <div style={{ marginTop:"0.5rem", fontSize:"0.58rem", color:"#00ff4122" }}>TRUSTED BY 0 SATISFIED SEO PROFESSIONALS</div>
           </div>
         )}
       </div>
