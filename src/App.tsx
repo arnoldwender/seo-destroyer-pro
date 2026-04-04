@@ -630,7 +630,7 @@ export default function App() {
       400,
       550
     );
-    ctx.fillText("WENDER MEDIA ANTI-OPTIMIZATION SUITE", 400, 570);
+    ctx.fillText("ARNOLD WENDER ANTI-OPTIMIZATION SUITE", 400, 570);
 
     /* Download */
     const link = document.createElement("a");
@@ -830,7 +830,7 @@ export default function App() {
               marginBottom: "0.5rem",
             }}
           >
-            WENDER MEDIA ANTI-OPTIMIZATION SUITE
+            ARNOLD WENDER ANTI-OPTIMIZATION SUITE
           </div>
           <h1
             style={{
@@ -1513,7 +1513,7 @@ export default function App() {
                   LOSS OF TRAFFIC, REVENUE, OR SANITY
                 </div>
                 <div>
-                  BUILT BY WENDER MEDIA -- 18 YEARS BUILDING
+                  BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING
                   WHAT WE NOW KNOW HOW TO DESTROY
                 </div>
                 <div
