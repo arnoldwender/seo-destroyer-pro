@@ -1,0 +1,24 @@
+# SEO Destroyer Pro
+
+> A parody SEO tool that "destroys" your website's SEO with absurd anti-recommendations.
+
+## Tech Stack
+- React 18, TypeScript, Vite, Tailwind CSS
+- Framer Motion, canvas-confetti, html2canvas, Web Audio API, Lucide React
+
+## Key Files
+- src/App.tsx — Main application component with destruction logic
+- src/sounds.ts — Web Audio API sound effects
+- src/index.css — Tailwind and global styles
+
+## Features
+- Destruction slider (mild to nuclear)
+- Certificate generator (html2canvas)
+- Confetti celebration (canvas-confetti)
+- Sound effects (Web Audio API)
+- Shareable share cards
+- Easter eggs and toast notifications
+
+## URLs
+- Live: https://seo-destroyer-pro.netlify.app
+- Repo: https://github.com/arnoldwender/seo-destroyer-pro
