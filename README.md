@@ -61,6 +61,10 @@ npm run build
 
 **[https://seo-destroyer-pro.netlify.app](https://seo-destroyer-pro.netlify.app)**
 
+## Contributing
+
+Want to help make SEO even worse? Check out [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to get involved.
+
 ## License
 
-MIT
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
