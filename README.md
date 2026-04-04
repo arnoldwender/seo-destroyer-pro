@@ -2,7 +2,7 @@
 
 **The world's first tool dedicated to obliterating your website's search rankings.**
 
-Built by [Arnold Wender](https://github.com/arnoldwender)
+Built by [Arnold Wender](https://arnoldwender.com)
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-SEO%20Destroyer%20Pro-ff4444?style=for-the-badge)](https://seo-destroyer-pro.netlify.app)
 
