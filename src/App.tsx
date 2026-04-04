@@ -112,7 +112,8 @@ export default function App() {
     let li = 0;
     const lineIv = setInterval(() => {
       if (li < TERMINAL_LINES.length) {
-        setLines((prev) => [...prev, TERMINAL_LINES[li]]);
+        const currentLine = TERMINAL_LINES[li];
+        setLines((prev) => [...prev, currentLine]);
         setProgress(Math.round(((li + 1) / TERMINAL_LINES.length) * 100));
         li++;
       } else {
@@ -120,7 +121,8 @@ export default function App() {
         let mi = 0;
         const metIv = setInterval(() => {
           if (mi < METRICS.length) {
-            setShownMetrics((prev) => [...prev, { ...METRICS[mi], score: Math.floor(Math.random() * 4) }]);
+            const currentMetric = METRICS[mi];
+            setShownMetrics((prev) => [...prev, { ...currentMetric, score: Math.floor(Math.random() * 4) }]);
             mi++;
           } else {
             clearInterval(metIv);
