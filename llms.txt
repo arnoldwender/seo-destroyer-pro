@@ -1,0 +1,48 @@
+# SEO Destroyer Pro
+
+> Satirical web app that simulates destroying a website's SEO
+
+## Overview
+
+SEO Destroyer Pro v6.6.6 is a parody React application with a retro terminal/hacker aesthetic. Users enter a URL, watch a fake "hacking" terminal sequence, and receive absurd SEO destruction metrics and recommendations. Entirely client-side with no real analysis performed.
+
+## Tech Stack
+
+- React 18 + TypeScript 5.5 (strict mode)
+- Vite 5.4 (build and dev server)
+- Tailwind CSS 3.4 (minimal usage, mostly inline styles)
+- ESLint 9 (flat config with typescript-eslint)
+
+## Project Structure
+
+- src/App.tsx: All application components, data, and logic (~268 lines)
+- src/main.tsx: React DOM entry point
+- src/index.css: Tailwind CSS imports
+- index.html: HTML shell
+- vite.config.ts: Vite configuration with React plugin
+
+## Development
+
+Install: npm install
+Dev server: npm run dev (localhost:5173)
+Build: npm run build (outputs to dist/)
+Lint: npm run lint
+Type check: npm run typecheck
+
+## Architecture
+
+Single-component application. App.tsx contains:
+- Constant data arrays: METRICS (12 items), TERMINAL_LINES (14 items), RECOMMENDATIONS (10 items)
+- ScoreGauge component: Animated percentage display
+- App component: Phase-based UI (idle/scanning/results) with React hooks
+- glitchText utility: Character substitution for glitch effect
+
+No routing, no state management library, no backend, no tests.
+
+## Key Design Decisions
+
+- Monolithic single-file architecture (intentionally simple)
+- Inline styles over CSS classes (terminal aesthetic requires computed values)
+- All data hardcoded (no API calls by design)
+- TypeScript strict mode enforced
+- Phase-based state machine for UI flow

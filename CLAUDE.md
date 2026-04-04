@@ -1,71 +1,90 @@
-# CLAUDE.md — SEO Destroyer Pro
+# CLAUDE.md -- SEO Destroyer Pro
 
-## Project Overview
+## What This Project Is
 
-Satirical React web app that simulates "destroying" a website's SEO. Features a terminal/hacker-style UI with glitch effects, fake SEO metrics, and humorous anti-optimization recommendations. Built by "Wender Media."
+Satirical single-page React app simulating SEO "destruction" of a target website. Terminal/hacker aesthetic with glitch effects, fake metrics, and humorous anti-optimization recommendations. Entirely client-side -- no real backend or API calls.
+
+## Quick Reference
+
+```bash
+npm run dev          # Vite dev server at localhost:5173 with HMR
+npm run build        # Production build to dist/
+npm run preview      # Preview production build
+npm run lint         # ESLint (flat config, ESLint 9)
+npm run typecheck    # tsc --noEmit -p tsconfig.app.json
+```
 
 ## Tech Stack
 
-- **Language:** TypeScript 5.5 (strict mode)
-- **Framework:** React 18 with Vite 5.4
-- **Styling:** Tailwind CSS 3.4 + inline styles (terminal aesthetic)
-- **Icons:** lucide-react
-- **Backend client:** @supabase/supabase-js (dependency present, not actively used)
-- **Linting:** ESLint 9 (flat config) with typescript-eslint, react-hooks, react-refresh plugins
+- TypeScript 5.5 (strict mode) + React 18
+- Vite 5.4 (build + dev server)
+- Tailwind CSS 3.4 + heavy inline styles
+- ESLint 9 flat config with typescript-eslint, react-hooks, react-refresh
+- lucide-react for icons (dependency present, not actively imported)
+- @supabase/supabase-js (dependency present, not actively used)
 
-## Project Structure
+## Architecture
+
+**Single-component app.** All logic lives in `src/App.tsx` (~268 lines):
+- `App` -- main component with phase-based rendering (`idle` / `scanning` / `results`)
+- `ScoreGauge` -- sub-component for animated health percentage display
+- `glitchText` -- utility for randomized character substitution
+
+**Data constants** (all hardcoded in App.tsx):
+- `METRICS` -- 12 mock SEO metrics with labels, bad values, icons
+- `TERMINAL_LINES` -- 14 fake terminal output messages
+- `RECOMMENDATIONS` -- 10 humorous anti-SEO tips
+
+**State management:** Local hooks only (useState, useEffect, useRef). No external state library.
+
+**Styling:** Inline style objects dominate. Tailwind is imported via `index.css` but barely used directly. CSS keyframes (`blink`, `scandown`, `pulse`) are injected via an inline `<style>` block.
+
+## File Map
 
 ```
-src/
-├── App.tsx          # Monolithic main component (all UI, state, and logic)
-├── main.tsx         # React entry point
-├── index.css        # Global styles with Tailwind imports
-└── vite-env.d.ts    # Vite type declarations
-index.html           # HTML entry point
-vite.config.ts       # Vite configuration
-eslint.config.js     # ESLint flat config
-tailwind.config.js   # Tailwind content paths
-tsconfig.app.json    # App TS config (ES2020, strict, react-jsx)
-tsconfig.node.json   # Build tools TS config (ES2022)
-```
-
-## Commands
-
-```bash
-npm run dev          # Start Vite dev server with HMR
-npm run build        # Production build to dist/
-npm run preview      # Preview production build locally
-npm run lint         # Run ESLint on all files
-npm run typecheck    # TypeScript type checking (tsc --noEmit)
+src/App.tsx           -- All application code (components, data, logic)
+src/main.tsx          -- ReactDOM.createRoot entry point
+src/index.css         -- Tailwind @import directives
+src/vite-env.d.ts     -- Vite client types
+index.html            -- HTML shell (title: "SEO Destroyer Pro v6.6.6")
+vite.config.ts        -- React plugin, excludes lucide-react from optimizeDeps
+eslint.config.js      -- Flat config: recommended + typescript-eslint + react plugins
+tailwind.config.js    -- Content: index.html + src/**/*.{js,ts,jsx,tsx}
+postcss.config.js     -- tailwindcss + autoprefixer
+tsconfig.app.json     -- ES2020, strict, react-jsx, bundler resolution
+tsconfig.node.json    -- ES2022, for vite.config.ts only
 ```
 
 ## Code Conventions
 
-- **TypeScript strict mode** — `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` all enabled
-- **Naming:** camelCase for variables/functions, ALL_CAPS for constant data arrays (e.g., `METRICS`, `TERMINAL_LINES`, `RECOMMENDATIONS`)
-- **Components:** Const arrow functions; single-file component architecture currently
-- **State management:** Local React hooks only (useState, useEffect, useRef) — no external state library
-- **Phase-based UI:** App renders based on phase state: `"idle"` → `"scanning"` → `"results"`
-- **Styling:** Heavy inline styles for the terminal aesthetic; Tailwind used minimally via `index.css`
-- **Animations:** CSS keyframes injected via inline `<style>` tags + setInterval-based typing effects
+- **Strict TypeScript** -- noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch
+- **Naming** -- camelCase for variables/functions, ALL_CAPS for constant arrays
+- **Components** -- Arrow functions or function declarations; default export for App
+- **No prop types / interfaces defined** -- types are inlined or inferred
+- **Phase-based rendering** -- UI branches on `phase` state string literal union
+- **Animations** -- setInterval-driven typing effects + CSS keyframes for visual polish
 
-## Linting Rules
+## Linting Details
 
-- ESLint 9 flat config format
-- `dist/` directory is ignored
-- Browser globals enabled, target ES2020
-- `react-refresh/only-export-components`: warn (allows constant exports)
-- React hooks rules enforced
+ESLint 9 flat config (`eslint.config.js`):
+- Ignores `dist/`
+- Extends `@eslint/js` recommended + `typescript-eslint` recommended
+- Targets `**/*.{ts,tsx}` files with ES2020 + browser globals
+- `react-hooks` plugin enforcing rules of hooks
+- `react-refresh/only-export-components`: warn, allowConstantExport
 
-## No Testing Framework
+## What This Project Does NOT Have
 
-There is no test runner or test files configured. If adding tests, Vitest would be the natural choice given the Vite build system.
+- **No tests** -- no test runner, no test files. Vitest would be the natural fit.
+- **No CI/CD** -- no GitHub Actions, no workflows
+- **No routing** -- single page, no react-router
+- **No API calls** -- all data is mock/hardcoded
+- **No env vars required** -- `.env` is gitignored but nothing reads from it
+- **No component library** -- all UI is hand-built with inline styles
 
-## No CI/CD
+## Common Tasks for AI Assistants
 
-No GitHub Actions workflows or other CI configuration exists. The project uses the Bolt "bolt-vite-react-ts" template for cloud deployment.
-
-## Environment
-
-- `.env` is gitignored but no `.env.example` exists
-- No environment variables are currently required to run the app
+- **Adding features:** All UI lives in App.tsx. Consider extracting components if adding significant functionality.
+- **Changing metrics/text:** Edit the `METRICS`, `TERMINAL_LINES`, or `RECOMMENDATIONS` arrays at the top of App.tsx.
+- **Styling changes:** Most styles are inline objects in JSX. Global/Tailwind styles in src/index.css.
+- **Before committing:** Run `npm run lint` and `npm run typecheck` to catch issues.
