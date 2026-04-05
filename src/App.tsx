@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import html2canvas from "html2canvas";
 import { playBeep, playAlarm, playDing, playError } from "./sounds";
+import LighthouseReport from "./components/LighthouseReport";
+import SearchConsole from "./components/SearchConsole";
+import Changelog from "./components/Changelog";
+import ProTier from "./components/ProTier";
+import { CliModeProvider, CliModeToggle, CliSection, CliOutput, useCliMode } from "./components/CliMode";
 
 /* ─────────────────────────────────────────────
    Data: Metrics, terminal lines, recommendations
@@ -139,7 +144,6 @@ function glitchText(text: string, intensity: number) {
 function getGlobalCount(): number {
   const stored = localStorage.getItem("seo-destroyer-count");
   if (stored) return parseInt(stored, 10);
-  /* Start from a number seeded by today's date */
   const today = new Date();
   const seed =
     today.getFullYear() * 10000 +
@@ -160,7 +164,6 @@ function fireConfetti() {
     colors,
     disableForReducedMotion: true,
   });
-  /* Second burst slightly delayed for fullness */
   setTimeout(() => {
     confetti({
       particleCount: 60,
@@ -228,7 +231,7 @@ function ScoreGauge({ score }: { score: number }) {
   );
 }
 
-/** Toast notification component */
+/** VS Code-style toast notification */
 function Toast({
   message,
   onDone,
@@ -243,36 +246,63 @@ function Toast({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50, x: "-50%" }}
-      animate={{ opacity: 1, y: 0, x: "-50%" }}
-      exit={{ opacity: 0, y: -20, x: "-50%" }}
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 50 }}
       transition={{ duration: 0.3 }}
       style={{
         position: "fixed",
         bottom: "2rem",
-        left: "50%",
-        background: "#1a0a00",
-        border: "1px solid #ff660066",
-        color: "#ff6600",
+        right: "1rem",
+        background: "#1e1e1e",
+        border: "1px solid #333",
+        borderLeft: "3px solid #ff6600",
+        color: "#cccccc",
         fontFamily: "monospace",
-        fontSize: "0.75rem",
-        padding: "0.6rem 1.2rem",
+        fontSize: "0.72rem",
+        padding: "0.6rem 1rem 0.6rem 0.8rem",
         zIndex: 10001,
-        letterSpacing: "1px",
-        boxShadow: "0 0 20px rgba(255,102,0,0.3)",
-        whiteSpace: "nowrap",
+        maxWidth: "340px",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "0.5rem",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
       }}
     >
-      {"\u26A0"} {message}
+      {/* VS Code info icon */}
+      <div
+        style={{
+          width: "16px",
+          height: "16px",
+          borderRadius: "50%",
+          background: "#ff6600",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "0.55rem",
+          color: "#000",
+          fontWeight: "bold",
+          flexShrink: 0,
+        }}
+      >
+        !
+      </div>
+      <div>
+        <div style={{ fontSize: "0.6rem", color: "#888", marginBottom: "0.15rem" }}>
+          SEO Destroyer Pro
+        </div>
+        <div style={{ color: "#ccc", lineHeight: "1.4" }}>{message}</div>
+      </div>
     </motion.div>
   );
 }
 
 /* ─────────────────────────────────────────────
-   Main App
+   Main App (inner component — uses CLI context)
    ───────────────────────────────────────────── */
 
-export default function App() {
+function AppContent() {
+  const { cliMode } = useCliMode();
   const [url, setUrl] = useState("");
   const [phase, setPhase] = useState<"idle" | "scanning" | "results">("idle");
   const [lines, setLines] = useState<string[]>([]);
@@ -388,7 +418,6 @@ export default function App() {
   /* Get recommendations pool based on scan count */
   function getRecsForScan(): string[] {
     const base = [...RECOMMENDATIONS_BASE];
-    /* Add escalation recs progressively */
     const extra = RECOMMENDATIONS_ESCALATION.slice(
       0,
       Math.min(scanCount * 3, RECOMMENDATIONS_ESCALATION.length)
@@ -445,7 +474,6 @@ export default function App() {
         let mi = 0;
         const metIv = setInterval(() => {
           if (mi < shuffled.length) {
-            /* Score severity scaled by intensity slider */
             const maxScore = Math.max(1, 5 - intensity);
             setShownMetrics((prev) => [
               ...prev,
@@ -498,19 +526,34 @@ export default function App() {
     if (soundEnabled) playDing();
   }
 
-  /* Share card — capture results as image */
+  /* Share card — capture results as image (OG-image sized: 1200x630) */
   async function shareResults() {
     if (!resultsRef.current) return;
     try {
       const canvas = await html2canvas(resultsRef.current, {
         backgroundColor: "#000000",
         scale: 2,
+        width: 600,
+        height: 315,
+        windowWidth: 600,
       });
+
+      /* Resize to 1200x630 for OG-image */
+      const ogCanvas = document.createElement("canvas");
+      ogCanvas.width = 1200;
+      ogCanvas.height = 630;
+      const ctx = ogCanvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, 1200, 630);
+        ctx.drawImage(canvas, 0, 0, 1200, 630);
+      }
+
       const link = document.createElement("a");
       link.download = `seo-destruction-report-${Date.now()}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = (ctx ? ogCanvas : canvas).toDataURL("image/png");
       link.click();
-      addToast("Destruction report downloaded!");
+      addToast("Destruction report downloaded (1200x630 OG-image)!");
     } catch {
       addToast("Failed to capture report. Too much destruction.");
     }
@@ -662,11 +705,12 @@ export default function App() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#000",
+        background: cliMode ? "#1a1a2e" : "#000",
         color: "#00ff41",
         fontFamily: "monospace",
         position: "relative",
         overflow: "hidden",
+        transition: "background 0.3s",
       }}
     >
       {/* Global styles and CRT effects */}
@@ -721,43 +765,67 @@ export default function App() {
         }
       `}</style>
 
-      {/* CRT scanline overlay */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background:
-            "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,0.015) 2px,rgba(0,255,65,0.015) 4px)",
-          pointerEvents: "none",
-          zIndex: 9999,
-        }}
-      />
-      {/* CRT vignette */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background:
-            "radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,0.6) 100%)",
-          pointerEvents: "none",
-          zIndex: 9998,
-        }}
-      />
-      {/* CRT scan line */}
-      <div
-        style={{
-          position: "fixed",
-          left: 0,
-          right: 0,
-          height: "3px",
-          background: "rgba(0,255,65,0.08)",
-          animation: "scandown 6s linear infinite",
-          zIndex: 9997,
-          pointerEvents: "none",
-        }}
-      />
+      {/* CRT scanline overlay — hidden in CLI mode */}
+      {!cliMode && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background:
+                "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,0.015) 2px,rgba(0,255,65,0.015) 4px)",
+              pointerEvents: "none",
+              zIndex: 9999,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background:
+                "radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,0.6) 100%)",
+              pointerEvents: "none",
+              zIndex: 9998,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              left: 0,
+              right: 0,
+              height: "3px",
+              background: "rgba(0,255,65,0.08)",
+              animation: "scandown 6s linear infinite",
+              zIndex: 9997,
+              pointerEvents: "none",
+            }}
+          />
+        </>
+      )}
 
-      {/* Toast notifications */}
+      {/* CLI mode top bar */}
+      {cliMode && (
+        <div
+          style={{
+            background: "#0d0d1a",
+            borderBottom: "1px solid #00ff4122",
+            padding: "0.4rem 1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            fontSize: "0.6rem",
+          }}
+        >
+          <span style={{ color: "#ff0033" }}>&#x25CF;</span>
+          <span style={{ color: "#ff6600" }}>&#x25CF;</span>
+          <span style={{ color: "#00ff41" }}>&#x25CF;</span>
+          <span style={{ color: "#00ff4155", marginLeft: "0.5rem", letterSpacing: "1px" }}>
+            seo-destroyer-pro -- bash -- 80x24
+          </span>
+        </div>
+      )}
+
+      {/* Toast notifications — VS Code style */}
       <AnimatePresence>
         {toasts.map((t) => (
           <Toast
@@ -775,40 +843,72 @@ export default function App() {
           padding: "2rem 1.5rem",
         }}
       >
+        {/* CLI mode: session header */}
+        {cliMode && (
+          <div
+            style={{
+              fontSize: "0.62rem",
+              color: "#00ff4155",
+              marginBottom: "1rem",
+              lineHeight: "1.8",
+            }}
+          >
+            <div>Last login: {new Date().toLocaleDateString()} on ttys001</div>
+            <div style={{ color: "#00ff4188" }}>
+              seo-destroyer $ ./destroy --version
+            </div>
+            <div style={{ color: "#ff003388" }}>
+              SEO Destroyer Pro v6.6.6 (build 666.420.69)
+            </div>
+          </div>
+        )}
+
         {/* Global counter */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{
-            textAlign: "center",
-            marginBottom: "1rem",
-            padding: "0.5rem",
-            border: "1px solid #ff003322",
-            background: "#ff001108",
-          }}
-        >
-          <div
+        <CliSection command="cat /var/log/destruction-counter">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
             style={{
-              fontSize: "0.55rem",
-              letterSpacing: "4px",
-              color: "#ff003366",
-              marginBottom: "0.2rem",
+              textAlign: cliMode ? "left" : "center",
+              marginBottom: "1rem",
+              padding: "0.5rem",
+              border: cliMode ? "none" : "1px solid #ff003322",
+              background: cliMode ? "transparent" : "#ff001108",
             }}
           >
-            WEBSITES DESTROYED WORLDWIDE
-          </div>
-          <div
-            style={{
-              fontSize: "1.4rem",
-              color: "#ff0033",
-              textShadow: "0 0 10px #ff003366",
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {globalCount.toLocaleString()}
-          </div>
-        </motion.div>
+            {cliMode ? (
+              <CliOutput
+                label="DESTROYED_WORLDWIDE:"
+                value={globalCount.toLocaleString()}
+                color="#ff0033"
+              />
+            ) : (
+              <>
+                <div
+                  style={{
+                    fontSize: "0.55rem",
+                    letterSpacing: "4px",
+                    color: "#ff003366",
+                    marginBottom: "0.2rem",
+                  }}
+                >
+                  WEBSITES DESTROYED WORLDWIDE
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.4rem",
+                    color: "#ff0033",
+                    textShadow: "0 0 10px #ff003366",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {globalCount.toLocaleString()}
+                </div>
+              </>
+            )}
+          </motion.div>
+        </CliSection>
 
         {/* Header section */}
         <motion.div
@@ -816,32 +916,34 @@ export default function App() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           style={{
-            textAlign: "center",
+            textAlign: cliMode ? "left" : "center",
             marginBottom: "2.5rem",
             borderBottom: "1px solid #00ff4133",
             paddingBottom: "1.5rem",
           }}
         >
-          <div
-            style={{
-              fontSize: "0.65rem",
-              letterSpacing: "6px",
-              color: "#00ff4166",
-              marginBottom: "0.5rem",
-            }}
-          >
-            ARNOLD WENDER ANTI-OPTIMIZATION SUITE
-          </div>
+          {!cliMode && (
+            <div
+              style={{
+                fontSize: "0.65rem",
+                letterSpacing: "6px",
+                color: "#00ff4166",
+                marginBottom: "0.5rem",
+              }}
+            >
+              ARNOLD WENDER ANTI-OPTIMIZATION SUITE
+            </div>
+          )}
           <h1
             style={{
-              fontSize: "clamp(1.6rem,5vw,2.8rem)",
+              fontSize: cliMode ? "1.2rem" : "clamp(1.6rem,5vw,2.8rem)",
               fontWeight: "normal",
               margin: "0 0 0.3rem",
-              letterSpacing: "4px",
-              textShadow: "0 0 20px #00ff41,0 0 40px #00ff41",
+              letterSpacing: cliMode ? "2px" : "4px",
+              textShadow: cliMode ? "none" : "0 0 20px #00ff41,0 0 40px #00ff41",
             }}
           >
-            {titleText}
+            {cliMode ? `$ ${titleText.toLowerCase()}` : titleText}
           </h1>
           <div
             style={{
@@ -850,186 +952,230 @@ export default function App() {
               letterSpacing: "2px",
             }}
           >
-            v6.6.6 -- GUARANTEED TO DESTROY YOUR GOOGLE RANKING IN MINUTES
+            {cliMode
+              ? "# GUARANTEED TO DESTROY YOUR GOOGLE RANKING IN MINUTES"
+              : "v6.6.6 -- GUARANTEED TO DESTROY YOUR GOOGLE RANKING IN MINUTES"}
           </div>
+          {!cliMode && (
+            <div
+              style={{
+                marginTop: "0.8rem",
+                display: "flex",
+                justifyContent: "center",
+                gap: "1.5rem",
+                fontSize: "0.6rem",
+                color: "#00ff4155",
+                flexWrap: "wrap",
+              }}
+            >
+              <span>PANDA SAFE</span>
+              <span>PENGUIN CERTIFIED</span>
+              <span>HUMMINGBIRD HOSTILE</span>
+              <span>GDPR NON-COMPLIANT</span>
+            </div>
+          )}
+
+          {/* Control buttons row */}
           <div
             style={{
               marginTop: "0.8rem",
               display: "flex",
-              justifyContent: "center",
-              gap: "1.5rem",
-              fontSize: "0.6rem",
-              color: "#00ff4155",
+              justifyContent: cliMode ? "flex-start" : "center",
+              gap: "0.5rem",
               flexWrap: "wrap",
             }}
           >
-            <span>PANDA SAFE</span>
-            <span>PENGUIN CERTIFIED</span>
-            <span>HUMMINGBIRD HOSTILE</span>
-            <span>GDPR NON-COMPLIANT</span>
+            {/* Sound toggle */}
+            <button
+              className="sound-btn"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              style={{
+                background: "transparent",
+                border: "1px solid #00ff4133",
+                color: "#00ff4166",
+                fontFamily: "monospace",
+                fontSize: "0.6rem",
+                padding: "0.3rem 0.6rem",
+                cursor: "pointer",
+                opacity: 0.7,
+              }}
+            >
+              {soundEnabled ? "\u{1F50A} SOUND ON" : "\u{1F507} SOUND OFF"}
+            </button>
+            {/* CLI mode toggle */}
+            <CliModeToggle />
           </div>
-
-          {/* Sound toggle */}
-          <button
-            className="sound-btn"
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            style={{
-              marginTop: "0.8rem",
-              background: "transparent",
-              border: "1px solid #00ff4133",
-              color: "#00ff4166",
-              fontFamily: "monospace",
-              fontSize: "0.6rem",
-              padding: "0.3rem 0.6rem",
-              cursor: "pointer",
-              opacity: 0.7,
-            }}
-          >
-            {soundEnabled ? "\u{1F50A} SOUND ON" : "\u{1F507} SOUND OFF"}
-          </button>
         </motion.div>
 
         {/* Destruction intensity slider */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          style={{ marginBottom: "1.5rem" }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "0.5rem",
-            }}
+        <CliSection command="set --intensity">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            style={{ marginBottom: "1.5rem" }}
           >
-            <div
-              style={{
-                fontSize: "0.65rem",
-                letterSpacing: "3px",
-                color: "#00ff4188",
-              }}
-            >
-              DESTRUCTION LEVEL:
-            </div>
-            <div
-              style={{
-                fontSize: "0.75rem",
-                color: intensityColor,
-                letterSpacing: "2px",
-                textShadow: `0 0 8px ${intensityColor}44`,
-              }}
-            >
-              {INTENSITY_LABELS[intensity]}
-            </div>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={4}
-            value={intensity}
-            onChange={(e) => setIntensity(parseInt(e.target.value))}
-            style={{ width: "100%" }}
-          />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "0.5rem",
-              color: "#00ff4133",
-              marginTop: "0.25rem",
-            }}
-          >
-            <span>MINOR</span>
-            <span>NUCLEAR</span>
-          </div>
-        </motion.div>
+            {cliMode ? (
+              <div>
+                <CliOutput
+                  label="DESTRUCTION_LEVEL:"
+                  value={INTENSITY_LABELS[intensity].toUpperCase()}
+                  color={intensityColor}
+                />
+                <input
+                  type="range"
+                  min={0}
+                  max={4}
+                  value={intensity}
+                  onChange={(e) => setIntensity(parseInt(e.target.value))}
+                  style={{ width: "100%", marginTop: "0.4rem" }}
+                />
+              </div>
+            ) : (
+              <>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "0.65rem",
+                      letterSpacing: "3px",
+                      color: "#00ff4188",
+                    }}
+                  >
+                    DESTRUCTION LEVEL:
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: intensityColor,
+                      letterSpacing: "2px",
+                      textShadow: `0 0 8px ${intensityColor}44`,
+                    }}
+                  >
+                    {INTENSITY_LABELS[intensity]}
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={4}
+                  value={intensity}
+                  onChange={(e) => setIntensity(parseInt(e.target.value))}
+                  style={{ width: "100%" }}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "0.5rem",
+                    color: "#00ff4133",
+                    marginTop: "0.25rem",
+                  }}
+                >
+                  <span>MINOR</span>
+                  <span>NUCLEAR</span>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </CliSection>
 
         {/* URL input and scan button */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          style={{ marginBottom: "2rem" }}
-        >
-          <div
-            style={{
-              fontSize: "0.65rem",
-              letterSpacing: "3px",
-              marginBottom: "0.5rem",
-              color: "#00ff4188",
-            }}
+        <CliSection command="destroy --target">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            style={{ marginBottom: "2rem" }}
           >
-            TARGET URL:
-          </div>
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            <div
-              style={{ flex: 1, position: "relative", minWidth: "200px" }}
-            >
-              <span
+            {!cliMode && (
+              <div
                 style={{
-                  position: "absolute",
-                  left: "0.8rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
+                  fontSize: "0.65rem",
+                  letterSpacing: "3px",
+                  marginBottom: "0.5rem",
+                  color: "#00ff4188",
                 }}
               >
-                {">"}
-              </span>
-              <input
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setEasterEggMsg("");
-                }}
-                onKeyDown={(e) => e.key === "Enter" && runScan()}
-                placeholder="https://your-website.com"
+                TARGET URL:
+              </div>
+            )}
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <div
+                style={{ flex: 1, position: "relative", minWidth: "200px" }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "0.8rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
+                >
+                  {cliMode ? "$" : ">"}
+                </span>
+                <input
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    setEasterEggMsg("");
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && runScan()}
+                  placeholder={cliMode ? "enter target url..." : "https://your-website.com"}
+                  style={{
+                    width: "100%",
+                    background: cliMode ? "#0d0d1a" : "transparent",
+                    border: `1px solid ${cliMode ? "#00ff4133" : "#00ff4166"}`,
+                    color: "#00ff41",
+                    fontFamily: "monospace",
+                    fontSize: "0.9rem",
+                    padding: "0.75rem 0.75rem 0.75rem 2rem",
+                    outline: "none",
+                    caretColor: "#00ff41",
+                  }}
+                />
+                <span
+                  style={{
+                    position: "absolute",
+                    right: "0.8rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    animation: "blink 1s infinite",
+                  }}
+                >
+                  {"\u2588"}
+                </span>
+              </div>
+              <button
+                onClick={runScan}
+                disabled={phase === "scanning"}
+                className="dbtn"
                 style={{
-                  width: "100%",
                   background: "transparent",
-                  border: "1px solid #00ff4166",
+                  border: "1px solid #00ff41",
                   color: "#00ff41",
                   fontFamily: "monospace",
-                  fontSize: "0.9rem",
-                  padding: "0.75rem 0.75rem 0.75rem 2rem",
-                  outline: "none",
-                  caretColor: "#00ff41",
-                }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  right: "0.8rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  animation: "blink 1s infinite",
+                  fontSize: "0.85rem",
+                  padding: "0.75rem 1.5rem",
+                  cursor:
+                    phase === "scanning" ? "not-allowed" : "pointer",
+                  letterSpacing: "2px",
+                  opacity: phase === "scanning" ? 0.5 : 1,
                 }}
               >
-                {"\u2588"}
-              </span>
+                {phase === "scanning"
+                  ? cliMode ? "RUNNING..." : "DESTROYING..."
+                  : cliMode ? "EXECUTE" : "DESTROY SEO"}
+              </button>
             </div>
-            <button
-              onClick={runScan}
-              disabled={phase === "scanning"}
-              className="dbtn"
-              style={{
-                background: "transparent",
-                border: "1px solid #00ff41",
-                color: "#00ff41",
-                fontFamily: "monospace",
-                fontSize: "0.85rem",
-                padding: "0.75rem 1.5rem",
-                cursor:
-                  phase === "scanning" ? "not-allowed" : "pointer",
-                letterSpacing: "2px",
-                opacity: phase === "scanning" ? 0.5 : 1,
-              }}
-            >
-              {phase === "scanning" ? "DESTROYING..." : "DESTROY SEO"}
-            </button>
-          </div>
-        </motion.div>
+          </motion.div>
+        </CliSection>
 
         {/* Easter egg message */}
         <AnimatePresence>
@@ -1046,12 +1192,12 @@ export default function App() {
                 background: "#ff001115",
                 color: "#ff0033",
                 fontSize: "0.8rem",
-                textAlign: "center",
+                textAlign: cliMode ? "left" : "center",
                 lineHeight: "1.6",
                 letterSpacing: "1px",
               }}
             >
-              {easterEggMsg}
+              {cliMode ? `ERROR: ${easterEggMsg}` : easterEggMsg}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1074,7 +1220,7 @@ export default function App() {
                       color: "#00ff4177",
                     }}
                   >
-                    DE-OPTIMIZING: {progress}%
+                    {cliMode ? `[${progress}%]` : `DE-OPTIMIZING: ${progress}%`}
                   </div>
                   <div
                     style={{
@@ -1109,7 +1255,7 @@ export default function App() {
               <div
                 ref={termRef}
                 style={{
-                  background: "#000",
+                  background: cliMode ? "#0d0d1a" : "#000",
                   border: "1px solid #00ff4133",
                   padding: "1rem",
                   height: "180px",
@@ -1127,7 +1273,7 @@ export default function App() {
                     transition={{ duration: 0.15 }}
                     style={{
                       color: lineColor(line),
-                      textShadow: "0 0 5px currentColor",
+                      textShadow: cliMode ? "none" : "0 0 5px currentColor",
                     }}
                   >
                     {line}
@@ -1153,139 +1299,174 @@ export default function App() {
               transition={{ duration: 0.5 }}
             >
               {/* Overall score header */}
-              <motion.div
-                className="results-header"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
-                style={{
-                  border: "1px solid #ff003344",
-                  background: "#ff00110a",
-                  padding: "1.5rem",
-                  marginBottom: "1.5rem",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: "1rem",
-                }}
-              >
-                <div>
+              <CliSection command="cat /var/log/seo-score">
+                <motion.div
+                  className="results-header"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
+                  style={{
+                    border: cliMode ? "none" : "1px solid #ff003344",
+                    background: cliMode ? "transparent" : "#ff00110a",
+                    padding: cliMode ? "0" : "1.5rem",
+                    marginBottom: "1.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "1rem",
+                  }}
+                >
+                  <div>
+                    {cliMode ? (
+                      <>
+                        <CliOutput label="STATUS:" value="DESTROYED" color="#ff0033" />
+                        <CliOutput label="SEO_HEALTH:" value={`${overallScore}%`} color="#ff0033" />
+                        <CliOutput
+                          label="MESSAGE:"
+                          value="Google added your site to its do-not-crawl prayer list"
+                          color="#00ff4188"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <div
+                          style={{
+                            fontSize: "0.62rem",
+                            letterSpacing: "4px",
+                            color: "#ff003399",
+                            marginBottom: "0.5rem",
+                          }}
+                        >
+                          OVERALL SEO DESTRUCTION SCORE
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.78rem",
+                            color: "#00ff4188",
+                            maxWidth: "340px",
+                            lineHeight: "1.6",
+                          }}
+                        >
+                          Congratulations. Your website is now invisible to
+                          search engines. Google has added it to its
+                          do-not-crawl prayer list.
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {!cliMode && <ScoreGauge score={overallScore} />}
+                </motion.div>
+              </CliSection>
+
+              {/* ═══════════════════════════════════════
+                 NEW: Reverse Lighthouse Report
+                 ═══════════════════════════════════════ */}
+              <CliSection command="lighthouse --reverse --audit">
+                <LighthouseReport />
+              </CliSection>
+
+              {/* ═══════════════════════════════════════
+                 NEW: Search Console Destruction Dashboard
+                 ═══════════════════════════════════════ */}
+              <CliSection command="gsc --dashboard --destruction-mode">
+                <SearchConsole />
+              </CliSection>
+
+              {/* Metrics report — staggered animation */}
+              <CliSection command="cat /var/log/destruction-report">
+                <div style={{ marginBottom: "1.5rem" }}>
                   <div
                     style={{
                       fontSize: "0.62rem",
                       letterSpacing: "4px",
-                      color: "#ff003399",
-                      marginBottom: "0.5rem",
+                      color: "#00ff4177",
+                      marginBottom: "0.75rem",
                     }}
                   >
-                    OVERALL SEO DESTRUCTION SCORE
+                    DESTRUCTION REPORT
                   </div>
-                  <div
-                    style={{
-                      fontSize: "0.78rem",
-                      color: "#00ff4188",
-                      maxWidth: "340px",
-                      lineHeight: "1.6",
-                    }}
-                  >
-                    Congratulations. Your website is now invisible to
-                    search engines. Google has added it to its
-                    do-not-crawl prayer list.
-                  </div>
-                </div>
-                <ScoreGauge score={overallScore} />
-              </motion.div>
-
-              {/* Metrics report — staggered animation */}
-              <div style={{ marginBottom: "1.5rem" }}>
-                <div
-                  style={{
-                    fontSize: "0.62rem",
-                    letterSpacing: "4px",
-                    color: "#00ff4177",
-                    marginBottom: "0.75rem",
-                  }}
-                >
-                  DESTRUCTION REPORT
-                </div>
-                {shownMetrics.map((m, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      duration: 0.3,
-                      delay: i * 0.06,
-                    }}
-                    className="metric-grid"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "1.8rem 1fr 1fr 60px",
-                      gap: "0.5rem",
-                      alignItems: "center",
-                      padding: "0.45rem 0.75rem",
-                      background: "#00ff410a",
-                      border: "1px solid #00ff4118",
-                      fontSize: "0.7rem",
-                      marginBottom: "0.3rem",
-                    }}
-                  >
-                    <span>{m.icon}</span>
-                    <span style={{ color: "#00ff4199" }}>
-                      {m.label}
-                    </span>
-                    <span
-                      className="metric-value"
-                      style={{
-                        color: "#ff6600",
-                        fontSize: "0.62rem",
+                  {shownMetrics.map((m, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: i * 0.06,
                       }}
-                    >
-                      {m.bad}
-                    </span>
-                    <div
+                      className="metric-grid"
                       style={{
-                        display: "flex",
+                        display: "grid",
+                        gridTemplateColumns: cliMode
+                          ? "1fr 1fr"
+                          : "1.8rem 1fr 1fr 60px",
+                        gap: "0.5rem",
                         alignItems: "center",
-                        gap: "0.3rem",
-                        justifyContent: "flex-end",
+                        padding: "0.45rem 0.75rem",
+                        background: "#00ff410a",
+                        border: "1px solid #00ff4118",
+                        fontSize: "0.7rem",
+                        marginBottom: "0.3rem",
                       }}
                     >
-                      <div
+                      {!cliMode && <span>{m.icon}</span>}
+                      <span style={{ color: "#00ff4199" }}>
+                        {cliMode ? `  ${m.label}:` : m.label}
+                      </span>
+                      <span
+                        className="metric-value"
                         style={{
-                          width: "30px",
-                          height: "3px",
-                          background: "#00ff4122",
+                          color: "#ff6600",
+                          fontSize: "0.62rem",
                         }}
                       >
+                        {m.bad}
+                      </span>
+                      {!cliMode && (
                         <div
                           style={{
-                            width: `${m.score}%`,
-                            height: "100%",
-                            background:
-                              m.score <= 5
-                                ? "#ff0033"
-                                : "#ff6600",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.3rem",
+                            justifyContent: "flex-end",
                           }}
-                        />
-                      </div>
-                      <span
-                        style={{
-                          color:
-                            m.score <= 5
-                              ? "#ff0033"
-                              : "#ff6600",
-                          fontSize: "0.65rem",
-                        }}
-                      >
-                        {m.score}%
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                        >
+                          <div
+                            style={{
+                              width: "30px",
+                              height: "3px",
+                              background: "#00ff4122",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${m.score}%`,
+                                height: "100%",
+                                background:
+                                  m.score <= 5
+                                    ? "#ff0033"
+                                    : "#ff6600",
+                              }}
+                            />
+                          </div>
+                          <span
+                            style={{
+                              color:
+                                m.score <= 5
+                                  ? "#ff0033"
+                                  : "#ff6600",
+                              fontSize: "0.65rem",
+                            }}
+                          >
+                            {m.score}%
+                          </span>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </CliSection>
 
               {/* Dev mode extra metrics */}
               <AnimatePresence>
@@ -1351,72 +1532,85 @@ export default function App() {
               </AnimatePresence>
 
               {/* Recommendations */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-                style={{ marginBottom: "1.5rem" }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.62rem",
-                    letterSpacing: "4px",
-                    color: "#00ff4177",
-                    marginBottom: "0.75rem",
-                  }}
+              <CliSection command="seo-destroyer --recommend --apply">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  style={{ marginBottom: "1.5rem" }}
                 >
-                  RECOMMENDED OPTIMIZATIONS -- CLICK TO APPLY
-                </div>
-                {recs.map((rec, i) => {
-                  const done = applied.includes(rec);
-                  return (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -15 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        duration: 0.25,
-                        delay: 0.4 + i * 0.08,
-                      }}
-                      className={done ? "" : "rbtn"}
-                      onClick={() => !done && applyRec(rec)}
-                      style={{
-                        background: done
-                          ? "#00ff4115"
-                          : "transparent",
-                        border: `1px solid ${done ? "#00ff4144" : "#00ff4128"}`,
-                        color: done ? "#00ff4166" : "#00ff41",
-                        fontFamily: "monospace",
-                        fontSize: "0.7rem",
-                        padding: "0.55rem 0.9rem",
-                        marginBottom: "0.3rem",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        transition: "all 0.15s",
-                        cursor: done
-                          ? "default"
-                          : "pointer",
-                      }}
-                    >
-                      <span>
-                        {done ? "APPLIED -- " : "> "}
-                        {rec}
-                      </span>
-                      {!done && (
-                        <span
-                          style={{
-                            opacity: 0.4,
-                            fontSize: "0.6rem",
-                          }}
-                        >
-                          APPLY
+                  <div
+                    style={{
+                      fontSize: "0.62rem",
+                      letterSpacing: "4px",
+                      color: "#00ff4177",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    {cliMode
+                      ? "# RECOMMENDATIONS (ENTER TO APPLY)"
+                      : "RECOMMENDED OPTIMIZATIONS -- CLICK TO APPLY"}
+                  </div>
+                  {recs.map((rec, i) => {
+                    const done = applied.includes(rec);
+                    return (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -15 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          duration: 0.25,
+                          delay: 0.4 + i * 0.08,
+                        }}
+                        className={done ? "" : "rbtn"}
+                        onClick={() => !done && applyRec(rec)}
+                        style={{
+                          background: done
+                            ? "#00ff4115"
+                            : "transparent",
+                          border: `1px solid ${done ? "#00ff4144" : "#00ff4128"}`,
+                          color: done ? "#00ff4166" : "#00ff41",
+                          fontFamily: "monospace",
+                          fontSize: "0.7rem",
+                          padding: "0.55rem 0.9rem",
+                          marginBottom: "0.3rem",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          transition: "all 0.15s",
+                          cursor: done
+                            ? "default"
+                            : "pointer",
+                        }}
+                      >
+                        <span>
+                          {done
+                            ? cliMode ? "[DONE] " : "APPLIED -- "
+                            : cliMode ? "[ ] " : "> "}
+                          {rec}
                         </span>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
+                        {!done && (
+                          <span
+                            style={{
+                              opacity: 0.4,
+                              fontSize: "0.6rem",
+                            }}
+                          >
+                            {cliMode ? "RUN" : "APPLY"}
+                          </span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              </CliSection>
+
+              {/* ═══════════════════════════════════════
+                 NEW: Pro Tier Mockup
+                 ═══════════════════════════════════════ */}
+              <CliSection command="seo-destroyer --upgrade --pro">
+                <ProTier />
+              </CliSection>
 
               {/* Action buttons: Share + Certificate */}
               <motion.div
@@ -1450,7 +1644,7 @@ export default function App() {
                     gap: "0.5rem",
                   }}
                 >
-                  {"\u{1F4F8}"} SHARE DESTRUCTION REPORT
+                  {cliMode ? "$ share-report" : "\u{1F4F8} SHARE DESTRUCTION REPORT"}
                 </button>
                 <button
                   className="cert-btn"
@@ -1471,7 +1665,7 @@ export default function App() {
                     gap: "0.5rem",
                   }}
                 >
-                  {"\u{1F3C6}"} CERTIFICATE OF DESTRUCTION
+                  {cliMode ? "$ download-cert" : "\u{1F3C6} CERTIFICATE OF DESTRUCTION"}
                 </button>
               </motion.div>
 
@@ -1481,17 +1675,25 @@ export default function App() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   style={{
-                    textAlign: "center",
+                    textAlign: cliMode ? "left" : "center",
                     marginBottom: "1rem",
                     fontSize: "0.6rem",
                     color: "#ff660066",
                     letterSpacing: "2px",
                   }}
                 >
-                  DESTRUCTION SPREE: {scanCount} SITES OBLITERATED
-                  THIS SESSION
+                  {cliMode
+                    ? `# DESTRUCTION_SPREE=${scanCount}`
+                    : `DESTRUCTION SPREE: ${scanCount} SITES OBLITERATED THIS SESSION`}
                 </motion.div>
               )}
+
+              {/* ═══════════════════════════════════════
+                 NEW: Fake Changelog
+                 ═══════════════════════════════════════ */}
+              <CliSection command="cat CHANGELOG.md">
+                <Changelog />
+              </CliSection>
 
               {/* Footer */}
               <motion.div
@@ -1501,30 +1703,40 @@ export default function App() {
                 style={{
                   borderTop: "1px solid #00ff4122",
                   paddingTop: "1.5rem",
-                  textAlign: "center",
+                  textAlign: cliMode ? "left" : "center",
                   fontSize: "0.6rem",
                   color: "#00ff4144",
                   letterSpacing: "2px",
                   lineHeight: "2.2",
                 }}
               >
-                <div>
-                  SEO DESTROYER PRO IS NOT RESPONSIBLE FOR
-                  LOSS OF TRAFFIC, REVENUE, OR SANITY
-                </div>
-                <div>
-                  BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING
-                  WHAT WE NOW KNOW HOW TO DESTROY
-                </div>
-                <div
-                  style={{
-                    color: "#ff003355",
-                    marginTop: "0.3rem",
-                  }}
-                >
-                  HTTP 418 -- I AM A TEAPOT AND SO IS YOUR
-                  SITEMAP
-                </div>
+                {cliMode ? (
+                  <>
+                    <div># SEO DESTROYER PRO IS NOT RESPONSIBLE FOR LOSS OF TRAFFIC, REVENUE, OR SANITY</div>
+                    <div># BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING WHAT WE NOW KNOW HOW TO DESTROY</div>
+                    <div style={{ color: "#ff003355" }}>$ exit 418 # I AM A TEAPOT AND SO IS YOUR SITEMAP</div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      SEO DESTROYER PRO IS NOT RESPONSIBLE FOR
+                      LOSS OF TRAFFIC, REVENUE, OR SANITY
+                    </div>
+                    <div>
+                      BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING
+                      WHAT WE NOW KNOW HOW TO DESTROY
+                    </div>
+                    <div
+                      style={{
+                        color: "#ff003355",
+                        marginTop: "0.3rem",
+                      }}
+                    >
+                      HTTP 418 -- I AM A TEAPOT AND SO IS YOUR
+                      SITEMAP
+                    </div>
+                  </>
+                )}
               </motion.div>
             </motion.div>
           )}
@@ -1539,7 +1751,7 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4 }}
               style={{
-                textAlign: "center",
+                textAlign: cliMode ? "left" : "center",
                 padding: "3rem 0",
                 color: "#00ff4133",
                 fontSize: "0.72rem",
@@ -1547,19 +1759,25 @@ export default function App() {
               }}
             >
               {/* Skull emoji — clickable easter egg */}
-              <div
-                onClick={handleSkullClick}
-                style={{
-                  fontSize: "3rem",
-                  marginBottom: "1rem",
-                  filter: "drop-shadow(0 0 20px #00ff41)",
-                  cursor: "pointer",
-                  userSelect: "none",
-                }}
-              >
-                {"\u2620"}
+              {!cliMode && (
+                <div
+                  onClick={handleSkullClick}
+                  style={{
+                    fontSize: "3rem",
+                    marginBottom: "1rem",
+                    filter: "drop-shadow(0 0 20px #00ff41)",
+                    cursor: "pointer",
+                    userSelect: "none",
+                  }}
+                >
+                  {"\u2620"}
+                </div>
+              )}
+              <div>
+                {cliMode
+                  ? "# AWAITING TARGET URL..."
+                  : "ENTER TARGET URL TO BEGIN DESTRUCTION"}
               </div>
-              <div>ENTER TARGET URL TO BEGIN DESTRUCTION</div>
               <div
                 style={{
                   marginTop: "0.5rem",
@@ -1567,7 +1785,9 @@ export default function App() {
                   color: "#00ff4122",
                 }}
               >
-                TRUSTED BY 0 SATISFIED SEO PROFESSIONALS
+                {cliMode
+                  ? "# TRUSTED BY 0 SEO PROFESSIONALS"
+                  : "TRUSTED BY 0 SATISFIED SEO PROFESSIONALS"}
               </div>
               {devMode && (
                 <motion.div
@@ -1580,8 +1800,9 @@ export default function App() {
                     letterSpacing: "3px",
                   }}
                 >
-                  {"\u{1F6A8}"} DEVELOPER MODE ACTIVE{" "}
-                  {"\u{1F6A8}"}
+                  {cliMode
+                    ? "# DEV_MODE=true"
+                    : "\u{1F6A8} DEVELOPER MODE ACTIVE \u{1F6A8}"}
                 </motion.div>
               )}
             </motion.div>
@@ -1589,5 +1810,17 @@ export default function App() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Root wrapper — provides CLI mode context
+   ───────────────────────────────────────────── */
+
+export default function App() {
+  return (
+    <CliModeProvider>
+      <AppContent />
+    </CliModeProvider>
   );
 }
