@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import html2canvas from "html2canvas";
 import { playBeep, playAlarm, playDing, playError } from "./sounds";
@@ -825,16 +825,14 @@ function AppContent() {
         </div>
       )}
 
-      {/* Toast notifications — VS Code style */}
-      <AnimatePresence>
-        {toasts.map((t) => (
-          <Toast
-            key={t.id}
-            message={t.msg}
-            onDone={() => removeToast(t.id)}
-          />
-        ))}
-      </AnimatePresence>
+      {/* Toast notifications — VS Code style, no AnimatePresence to prevent render blocking */}
+      {toasts.map((t) => (
+        <Toast
+          key={t.id}
+          message={t.msg}
+          onDone={() => removeToast(t.id)}
+        />
+      ))}
 
       <div
         style={{
@@ -1177,13 +1175,11 @@ function AppContent() {
           </motion.div>
         </CliSection>
 
-        {/* Easter egg message */}
-        <AnimatePresence>
-          {easterEggMsg && (
+        {/* Easter egg message — no AnimatePresence to prevent render blocking */}
+        {easterEggMsg && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
               style={{
                 marginBottom: "1.5rem",
@@ -1200,11 +1196,9 @@ function AppContent() {
               {cliMode ? `ERROR: ${easterEggMsg}` : easterEggMsg}
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Scanning phase — terminal and progress */}
-        <AnimatePresence>
-          {phase !== "idle" && (
+        {/* Scanning phase — terminal and progress, no AnimatePresence to prevent render blocking */}
+        {phase !== "idle" && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1287,11 +1281,9 @@ function AppContent() {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Results phase */}
-        <AnimatePresence>
-          {phase === "results" && (
+        {/* Results phase — no AnimatePresence to prevent black screen on phase transitions */}
+        {phase === "results" && (
             <motion.div
               ref={resultsRef}
               initial={{ opacity: 0 }}
@@ -1468,68 +1460,65 @@ function AppContent() {
                 </div>
               </CliSection>
 
-              {/* Dev mode extra metrics */}
-              <AnimatePresence>
-                {devMode && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
+              {/* Dev mode extra metrics — no AnimatePresence to prevent render blocking */}
+              {devMode && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  style={{
+                    marginBottom: "1.5rem",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
                     style={{
-                      marginBottom: "1.5rem",
-                      overflow: "hidden",
+                      fontSize: "0.62rem",
+                      letterSpacing: "4px",
+                      color: "#ff660077",
+                      marginBottom: "0.75rem",
                     }}
                   >
-                    <div
+                    {"\u{1F6A8}"} DEVELOPER MODE METRICS{" "}
+                    {"\u{1F6A8}"}
+                  </div>
+                  {DEV_MODE_METRICS.map((m, i) => (
+                    <motion.div
+                      key={`dev-${i}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: i * 0.1,
+                      }}
                       style={{
-                        fontSize: "0.62rem",
-                        letterSpacing: "4px",
-                        color: "#ff660077",
-                        marginBottom: "0.75rem",
+                        display: "grid",
+                        gridTemplateColumns:
+                          "1.8rem 1fr 1fr",
+                        gap: "0.5rem",
+                        alignItems: "center",
+                        padding: "0.45rem 0.75rem",
+                        background: "#ff660008",
+                        border: "1px solid #ff660022",
+                        fontSize: "0.7rem",
+                        marginBottom: "0.3rem",
                       }}
                     >
-                      {"\u{1F6A8}"} DEVELOPER MODE METRICS{" "}
-                      {"\u{1F6A8}"}
-                    </div>
-                    {DEV_MODE_METRICS.map((m, i) => (
-                      <motion.div
-                        key={`dev-${i}`}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{
-                          duration: 0.3,
-                          delay: i * 0.1,
-                        }}
+                      <span>{m.icon}</span>
+                      <span style={{ color: "#ff660099" }}>
+                        {m.label}
+                      </span>
+                      <span
                         style={{
-                          display: "grid",
-                          gridTemplateColumns:
-                            "1.8rem 1fr 1fr",
-                          gap: "0.5rem",
-                          alignItems: "center",
-                          padding: "0.45rem 0.75rem",
-                          background: "#ff660008",
-                          border: "1px solid #ff660022",
-                          fontSize: "0.7rem",
-                          marginBottom: "0.3rem",
+                          color: "#ff6600",
+                          fontSize: "0.62rem",
                         }}
                       >
-                        <span>{m.icon}</span>
-                        <span style={{ color: "#ff660099" }}>
-                          {m.label}
-                        </span>
-                        <span
-                          style={{
-                            color: "#ff6600",
-                            fontSize: "0.62rem",
-                          }}
-                        >
-                          {m.bad}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                        {m.bad}
+                      </span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
 
               {/* Recommendations */}
               <CliSection command="seo-destroyer --recommend --apply">
@@ -1740,15 +1729,12 @@ function AppContent() {
               </motion.div>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Idle state */}
-        <AnimatePresence>
-          {phase === "idle" && !easterEggMsg && (
+        {/* Idle state — no AnimatePresence to prevent black screen on phase transitions */}
+        {phase === "idle" && !easterEggMsg && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4 }}
               style={{
                 textAlign: cliMode ? "left" : "center",
@@ -1807,7 +1793,6 @@ function AppContent() {
               )}
             </motion.div>
           )}
-        </AnimatePresence>
       </div>
     </div>
   );
