@@ -25,6 +25,10 @@ A parody SEO tool that "destroys" your website's SEO with absurd anti-recommenda
 - **Share Cards** — Generate and share your destruction results on social media
 - **Easter Eggs** — Hidden surprises for the truly dedicated destroyers
 - **Toast Notifications** — Sarcastic feedback at every step
+- **Reverse Lighthouse Report** — SVG gauge visualizations showing how badly you've tanked Performance, SEO, and Accessibility scores
+- **Search Console Dashboard** — A fake Google Search Console showing your plummeting rankings in real time
+- **Fake Changelog** — A satirical version history documenting increasingly absurd "improvements"
+- **Pro Tier Modal** — A premium upgrade flow that promises even more destruction (for a price)
 
 ## Tech Stack
 

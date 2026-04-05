@@ -10,6 +10,11 @@
 - src/App.tsx — Main application component with destruction logic
 - src/sounds.ts — Web Audio API sound effects
 - src/index.css — Tailwind and global styles
+- src/components/LighthouseReport.tsx — Reverse Lighthouse Report with SVG gauges
+- src/components/SearchConsole.tsx — Fake Search Console dashboard
+- src/components/Changelog.tsx — Satirical changelog
+- src/components/ProTier.tsx — Premium tier upgrade modal
+- src/components/CliMode.tsx — CLI mode interface
 
 ## Features
 - Destruction slider (mild to nuclear)
@@ -18,6 +23,10 @@
 - Sound effects (Web Audio API)
 - Shareable share cards
 - Easter eggs and toast notifications
+- Reverse Lighthouse Report (SVG gauges)
+- Search Console Dashboard
+- Fake Changelog
+- Pro Tier modal
 
 ## URLs
 - Live: https://seo-destroyer-pro.netlify.app
