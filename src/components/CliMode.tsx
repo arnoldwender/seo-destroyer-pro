@@ -1,24 +1,11 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { CliModeContext, useCliMode } from "./useCliMode";
 
 /* ─────────────────────────────────────────────
    CLI Mode Context & Toggle
    Provides a global toggle that switches the
    entire UI to a terminal/CLI aesthetic.
    ───────────────────────────────────────────── */
-
-interface CliModeContextType {
-  cliMode: boolean;
-  toggleCliMode: () => void;
-}
-
-const CliModeContext = createContext<CliModeContextType>({
-  cliMode: false,
-  toggleCliMode: () => {},
-});
-
-export function useCliMode() {
-  return useContext(CliModeContext);
-}
 
 export function CliModeProvider({ children }: { children: ReactNode }) {
   const [cliMode, setCliMode] = useState(false);

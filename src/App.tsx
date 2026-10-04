@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import html2canvas from "html2canvas";
 import { playBeep, playAlarm, playDing, playError } from "./sounds";
 import LighthouseReport from "./components/LighthouseReport";
 import SearchConsole from "./components/SearchConsole";
 import Changelog from "./components/Changelog";
 import ProTier from "./components/ProTier";
-import { CliModeProvider, CliModeToggle, CliSection, CliOutput, useCliMode } from "./components/CliMode";
+import { CliModeProvider, CliModeToggle, CliSection, CliOutput } from "./components/CliMode";
+import { useCliMode } from "./components/useCliMode";
 
 /* ─────────────────────────────────────────────
    Data: Metrics, terminal lines, recommendations
@@ -448,7 +448,10 @@ function AppContent() {
 
     const lineIv = setInterval(() => {
       if (li < TERMINAL_LINES.length) {
-        setLines((prev) => [...prev, TERMINAL_LINES[li]]);
+        const currentLine = TERMINAL_LINES[li];
+        if (currentLine) {
+          setLines((prev) => [...prev, currentLine]);
+        }
         setProgress(Math.round(((li + 1) / TERMINAL_LINES.length) * 100));
         if (soundEnabled) playBeep();
 
@@ -474,14 +477,17 @@ function AppContent() {
         let mi = 0;
         const metIv = setInterval(() => {
           if (mi < shuffled.length) {
+            const currentMetric = shuffled[mi];
             const maxScore = Math.max(1, 5 - intensity);
-            setShownMetrics((prev) => [
-              ...prev,
-              {
-                ...shuffled[mi],
-                score: Math.floor(Math.random() * maxScore),
-              },
-            ]);
+            if (currentMetric) {
+              setShownMetrics((prev) => [
+                ...prev,
+                {
+                  ...currentMetric,
+                  score: Math.floor(Math.random() * maxScore),
+                },
+              ]);
+            }
             if (soundEnabled) playBeep();
             mi++;
           } else {
@@ -530,6 +536,7 @@ function AppContent() {
   async function shareResults() {
     if (!resultsRef.current) return;
     try {
+      const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(resultsRef.current, {
         backgroundColor: "#000000",
         scale: 2,
@@ -685,9 +692,10 @@ function AppContent() {
   }
 
   /* Terminal line color coding */
-  function lineColor(line: string) {
-    if (line.indexOf("WARNING") !== -1) return "#ff6600";
-    if (line.indexOf("COMPLETE") !== -1) return "#ff0033";
+  function lineColor(line?: string) {
+    if (!line) return "#00ff41";
+    if (line.includes("WARNING")) return "#ff6600";
+    if (line.includes("COMPLETE")) return "#ff0033";
     return "#00ff41";
   }
 
@@ -713,6 +721,11 @@ function AppContent() {
         transition: "background 0.3s",
       }}
     >
+      {/* Accessible skip link */}
+      <a href="#main-content" className="skip-link">
+        Skip to destruction console
+      </a>
+
       {/* Global styles and CRT effects */}
       <style>{`
         * { box-sizing: border-box; }
@@ -909,7 +922,8 @@ function AppContent() {
         </CliSection>
 
         {/* Header section */}
-        <motion.div
+        <motion.header
+          role="banner"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -1003,10 +1017,11 @@ function AppContent() {
             {/* CLI mode toggle */}
             <CliModeToggle />
           </div>
-        </motion.div>
+        </motion.header>
 
-        {/* Destruction intensity slider */}
-        <CliSection command="set --intensity">
+        <main id="main-content" role="main">
+          {/* Destruction intensity slider */}
+          <CliSection command="set --intensity">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -1119,6 +1134,9 @@ function AppContent() {
                   {cliMode ? "$" : ">"}
                 </span>
                 <input
+                  id="target-url-input"
+                  name="target_url"
+                  aria-label="Target website URL to obliterate"
                   value={url}
                   onChange={(e) => {
                     setUrl(e.target.value);
@@ -1683,50 +1701,6 @@ function AppContent() {
               <CliSection command="cat CHANGELOG.md">
                 <Changelog />
               </CliSection>
-
-              {/* Footer */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                style={{
-                  borderTop: "1px solid #00ff4122",
-                  paddingTop: "1.5rem",
-                  textAlign: cliMode ? "left" : "center",
-                  fontSize: "0.6rem",
-                  color: "#00ff4144",
-                  letterSpacing: "2px",
-                  lineHeight: "2.2",
-                }}
-              >
-                {cliMode ? (
-                  <>
-                    <div># SEO DESTROYER PRO IS NOT RESPONSIBLE FOR LOSS OF TRAFFIC, REVENUE, OR SANITY</div>
-                    <div># BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING WHAT WE NOW KNOW HOW TO DESTROY</div>
-                    <div style={{ color: "#ff003355" }}>$ exit 418 # I AM A TEAPOT AND SO IS YOUR SITEMAP</div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      SEO DESTROYER PRO IS NOT RESPONSIBLE FOR
-                      LOSS OF TRAFFIC, REVENUE, OR SANITY
-                    </div>
-                    <div>
-                      BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING
-                      WHAT WE NOW KNOW HOW TO DESTROY
-                    </div>
-                    <div
-                      style={{
-                        color: "#ff003355",
-                        marginTop: "0.3rem",
-                      }}
-                    >
-                      HTTP 418 -- I AM A TEAPOT AND SO IS YOUR
-                      SITEMAP
-                    </div>
-                  </>
-                )}
-              </motion.div>
             </motion.div>
           )}
 
@@ -1793,6 +1767,53 @@ function AppContent() {
               )}
             </motion.div>
           )}
+        </main>
+
+        {/* Persistent Footer Landmark */}
+        <motion.footer
+          role="contentinfo"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          style={{
+            borderTop: "1px solid #00ff4122",
+            paddingTop: "1.5rem",
+            marginTop: "2rem",
+            textAlign: cliMode ? "left" : "center",
+            fontSize: "0.6rem",
+            color: "#00ff4144",
+            letterSpacing: "2px",
+            lineHeight: "2.2",
+          }}
+        >
+          {cliMode ? (
+            <>
+              <div># SEO DESTROYER PRO IS NOT RESPONSIBLE FOR LOSS OF TRAFFIC, REVENUE, OR SANITY</div>
+              <div># BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING WHAT WE NOW KNOW HOW TO DESTROY</div>
+              <div style={{ color: "#ff003355" }}>$ exit 418 # I AM A TEAPOT AND SO IS YOUR SITEMAP</div>
+            </>
+          ) : (
+            <>
+              <div>
+                SEO DESTROYER PRO IS NOT RESPONSIBLE FOR
+                LOSS OF TRAFFIC, REVENUE, OR SANITY
+              </div>
+              <div>
+                BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING
+                WHAT WE NOW KNOW HOW TO DESTROY
+              </div>
+              <div
+                style={{
+                  color: "#ff003355",
+                  marginTop: "0.3rem",
+                }}
+              >
+                HTTP 418 -- I AM A TEAPOT AND SO IS YOUR
+                SITEMAP
+              </div>
+            </>
+          )}
+        </motion.footer>
       </div>
     </div>
   );

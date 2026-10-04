@@ -1,21 +1,25 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "seo-destroyer-pro",
+  "version": "6.6.6",
   "private": true,
-  "version": "0.0.0",
+  "description": "The world's first tool dedicated to obliterating your website's search rankings",
+  "author": "Arnold Wender <arnold.wender@gmail.com>",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:smoke": "python3 scripts/smoke.py",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
-    "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

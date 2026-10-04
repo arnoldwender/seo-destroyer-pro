@@ -1,0 +1,10 @@
+# SEO Destroyer Pro v6.6.6
+# robots.txt has officially given up.
+
+User-agent: *
+Disallow: /black-hole/
+Disallow: /null/
+Disallow: /dev/null/
+Allow: /
+
+# Sitemap: Your sitemap just caught fire
