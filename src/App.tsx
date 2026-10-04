@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import html2canvas from "html2canvas";
 import { playBeep, playAlarm, playDing, playError } from "./sounds";
 import LighthouseReport from "./components/LighthouseReport";
 import SearchConsole from "./components/SearchConsole";
@@ -530,6 +529,7 @@ function AppContent() {
   async function shareResults() {
     if (!resultsRef.current) return;
     try {
+      const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(resultsRef.current, {
         backgroundColor: "#000000",
         scale: 2,
