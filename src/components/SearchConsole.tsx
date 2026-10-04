@@ -21,15 +21,19 @@ function generateCrateringData(points: number): number[] {
   return data;
 }
 
+const CHART_WIDTH = 600;
+const CHART_HEIGHT = 160;
+const CHART_PADDING = { top: 10, right: 10, bottom: 25, left: 50 };
+
 /** Animated SVG line chart — impressions cratering to zero */
 function CrateringChart() {
   const [data] = useState(() => generateCrateringData(30));
   const [visiblePoints, setVisiblePoints] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const maxVal = Math.max(...data);
-  const width = 600;
-  const height = 160;
-  const padding = { top: 10, right: 10, bottom: 25, left: 50 };
+  const width = CHART_WIDTH;
+  const height = CHART_HEIGHT;
+  const padding = CHART_PADDING;
 
   /* Animate points appearing one by one */
   useEffect(() => {
@@ -105,7 +109,6 @@ function CrateringChart() {
     /* Gradient fill under line */
     ctx.shadowBlur = 0;
     const lastX = padding.left + (chartW / (data.length - 1)) * (points.length - 1);
-    const lastY = padding.top + chartH - (points[points.length - 1] / maxVal) * chartH;
     ctx.lineTo(lastX, padding.top + chartH);
     ctx.lineTo(padding.left, padding.top + chartH);
     ctx.closePath();
@@ -114,7 +117,7 @@ function CrateringChart() {
     grad.addColorStop(1, "#ff003305");
     ctx.fillStyle = grad;
     ctx.fill();
-  }, [visiblePoints, data, maxVal]);
+  }, [visiblePoints, data, maxVal, padding.bottom, padding.left, padding.right, padding.top]);
 
   return (
     <canvas
