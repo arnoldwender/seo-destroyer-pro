@@ -910,7 +910,8 @@ function AppContent() {
         </CliSection>
 
         {/* Header section */}
-        <motion.div
+        <motion.header
+          role="banner"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -1004,10 +1005,11 @@ function AppContent() {
             {/* CLI mode toggle */}
             <CliModeToggle />
           </div>
-        </motion.div>
+        </motion.header>
 
-        {/* Destruction intensity slider */}
-        <CliSection command="set --intensity">
+        <main id="main-content" role="main">
+          {/* Destruction intensity slider */}
+          <CliSection command="set --intensity">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -1686,7 +1688,8 @@ function AppContent() {
               </CliSection>
 
               {/* Footer */}
-              <motion.div
+              <motion.footer
+                role="contentinfo"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
@@ -1727,7 +1730,7 @@ function AppContent() {
                     </div>
                   </>
                 )}
-              </motion.div>
+              </motion.footer>
             </motion.div>
           )}
 
@@ -1794,6 +1797,7 @@ function AppContent() {
               )}
             </motion.div>
           )}
+        </main>
       </div>
     </div>
   );

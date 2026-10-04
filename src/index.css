@@ -1,3 +1,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Wender Media Design Tokens — Matrix / Cyberpunk Palette */
+  --color-primary-green: #00ff41;
+  --color-primary-green-rgb: 0, 255, 65;
+  --color-primary-green-dim: rgba(0, 255, 65, 0.6);
+  --color-primary-green-faint: rgba(0, 255, 65, 0.1);
+  --color-primary-green-glow: rgba(0, 255, 65, 0.4);
+
+  --color-danger-red: #ff0033;
+  --color-danger-red-rgb: 255, 0, 51;
+  --color-danger-red-faint: rgba(255, 0, 51, 0.1);
+  --color-danger-red-glow: rgba(255, 0, 51, 0.4);
+
+  --color-warning-orange: #ff6600;
+  --color-warning-orange-rgb: 255, 102, 0;
+
+  --color-bg-dark: #000000;
+  --color-bg-cli: #1a1a2e;
+  --color-surface-terminal: #0d0d1a;
+
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg-dark);
+    color: var(--color-primary-green);
+    font-family: var(--font-mono);
+  }
+}
