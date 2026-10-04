@@ -721,6 +721,11 @@ function AppContent() {
         transition: "background 0.3s",
       }}
     >
+      {/* Accessible skip link */}
+      <a href="#main-content" className="skip-link">
+        Skip to destruction console
+      </a>
+
       {/* Global styles and CRT effects */}
       <style>{`
         * { box-sizing: border-box; }
@@ -1129,6 +1134,9 @@ function AppContent() {
                   {cliMode ? "$" : ">"}
                 </span>
                 <input
+                  id="target-url-input"
+                  name="target_url"
+                  aria-label="Target website URL to obliterate"
                   value={url}
                   onChange={(e) => {
                     setUrl(e.target.value);
@@ -1693,51 +1701,6 @@ function AppContent() {
               <CliSection command="cat CHANGELOG.md">
                 <Changelog />
               </CliSection>
-
-              {/* Footer */}
-              <motion.footer
-                role="contentinfo"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                style={{
-                  borderTop: "1px solid #00ff4122",
-                  paddingTop: "1.5rem",
-                  textAlign: cliMode ? "left" : "center",
-                  fontSize: "0.6rem",
-                  color: "#00ff4144",
-                  letterSpacing: "2px",
-                  lineHeight: "2.2",
-                }}
-              >
-                {cliMode ? (
-                  <>
-                    <div># SEO DESTROYER PRO IS NOT RESPONSIBLE FOR LOSS OF TRAFFIC, REVENUE, OR SANITY</div>
-                    <div># BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING WHAT WE NOW KNOW HOW TO DESTROY</div>
-                    <div style={{ color: "#ff003355" }}>$ exit 418 # I AM A TEAPOT AND SO IS YOUR SITEMAP</div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      SEO DESTROYER PRO IS NOT RESPONSIBLE FOR
-                      LOSS OF TRAFFIC, REVENUE, OR SANITY
-                    </div>
-                    <div>
-                      BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING
-                      WHAT WE NOW KNOW HOW TO DESTROY
-                    </div>
-                    <div
-                      style={{
-                        color: "#ff003355",
-                        marginTop: "0.3rem",
-                      }}
-                    >
-                      HTTP 418 -- I AM A TEAPOT AND SO IS YOUR
-                      SITEMAP
-                    </div>
-                  </>
-                )}
-              </motion.footer>
             </motion.div>
           )}
 
@@ -1805,6 +1768,52 @@ function AppContent() {
             </motion.div>
           )}
         </main>
+
+        {/* Persistent Footer Landmark */}
+        <motion.footer
+          role="contentinfo"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          style={{
+            borderTop: "1px solid #00ff4122",
+            paddingTop: "1.5rem",
+            marginTop: "2rem",
+            textAlign: cliMode ? "left" : "center",
+            fontSize: "0.6rem",
+            color: "#00ff4144",
+            letterSpacing: "2px",
+            lineHeight: "2.2",
+          }}
+        >
+          {cliMode ? (
+            <>
+              <div># SEO DESTROYER PRO IS NOT RESPONSIBLE FOR LOSS OF TRAFFIC, REVENUE, OR SANITY</div>
+              <div># BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING WHAT WE NOW KNOW HOW TO DESTROY</div>
+              <div style={{ color: "#ff003355" }}>$ exit 418 # I AM A TEAPOT AND SO IS YOUR SITEMAP</div>
+            </>
+          ) : (
+            <>
+              <div>
+                SEO DESTROYER PRO IS NOT RESPONSIBLE FOR
+                LOSS OF TRAFFIC, REVENUE, OR SANITY
+              </div>
+              <div>
+                BUILT BY ARNOLD WENDER -- 18 YEARS BUILDING
+                WHAT WE NOW KNOW HOW TO DESTROY
+              </div>
+              <div
+                style={{
+                  color: "#ff003355",
+                  marginTop: "0.3rem",
+                }}
+              >
+                HTTP 418 -- I AM A TEAPOT AND SO IS YOUR
+                SITEMAP
+              </div>
+            </>
+          )}
+        </motion.footer>
       </div>
     </div>
   );
