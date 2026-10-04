@@ -6,7 +6,8 @@ import LighthouseReport from "./components/LighthouseReport";
 import SearchConsole from "./components/SearchConsole";
 import Changelog from "./components/Changelog";
 import ProTier from "./components/ProTier";
-import { CliModeProvider, CliModeToggle, CliSection, CliOutput, useCliMode } from "./components/CliMode";
+import { CliModeProvider, CliModeToggle, CliSection, CliOutput } from "./components/CliMode";
+import { useCliMode } from "./components/useCliMode";
 
 /* ─────────────────────────────────────────────
    Data: Metrics, terminal lines, recommendations

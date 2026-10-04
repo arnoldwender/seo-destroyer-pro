@@ -117,7 +117,7 @@ function CrateringChart() {
     grad.addColorStop(1, "#ff003305");
     ctx.fillStyle = grad;
     ctx.fill();
-  }, [visiblePoints, data, maxVal, padding.bottom, padding.left, padding.right, padding.top]);
+  }, [visiblePoints, data, maxVal, padding.bottom, padding.left, padding.right, padding.top, height, width]);
 
   return (
     <canvas
