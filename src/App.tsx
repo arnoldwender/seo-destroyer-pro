@@ -448,7 +448,10 @@ function AppContent() {
 
     const lineIv = setInterval(() => {
       if (li < TERMINAL_LINES.length) {
-        setLines((prev) => [...prev, TERMINAL_LINES[li]]);
+        const currentLine = TERMINAL_LINES[li];
+        if (currentLine) {
+          setLines((prev) => [...prev, currentLine]);
+        }
         setProgress(Math.round(((li + 1) / TERMINAL_LINES.length) * 100));
         if (soundEnabled) playBeep();
 
@@ -474,14 +477,17 @@ function AppContent() {
         let mi = 0;
         const metIv = setInterval(() => {
           if (mi < shuffled.length) {
+            const currentMetric = shuffled[mi];
             const maxScore = Math.max(1, 5 - intensity);
-            setShownMetrics((prev) => [
-              ...prev,
-              {
-                ...shuffled[mi],
-                score: Math.floor(Math.random() * maxScore),
-              },
-            ]);
+            if (currentMetric) {
+              setShownMetrics((prev) => [
+                ...prev,
+                {
+                  ...currentMetric,
+                  score: Math.floor(Math.random() * maxScore),
+                },
+              ]);
+            }
             if (soundEnabled) playBeep();
             mi++;
           } else {
@@ -686,9 +692,10 @@ function AppContent() {
   }
 
   /* Terminal line color coding */
-  function lineColor(line: string) {
-    if (line.indexOf("WARNING") !== -1) return "#ff6600";
-    if (line.indexOf("COMPLETE") !== -1) return "#ff0033";
+  function lineColor(line?: string) {
+    if (!line) return "#00ff41";
+    if (line.includes("WARNING")) return "#ff6600";
+    if (line.includes("COMPLETE")) return "#ff0033";
     return "#00ff41";
   }
 
