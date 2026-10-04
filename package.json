@@ -13,6 +13,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test:smoke": "python3 scripts/smoke.py",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
