@@ -105,7 +105,6 @@ function CrateringChart() {
     /* Gradient fill under line */
     ctx.shadowBlur = 0;
     const lastX = padding.left + (chartW / (data.length - 1)) * (points.length - 1);
-    const lastY = padding.top + chartH - (points[points.length - 1] / maxVal) * chartH;
     ctx.lineTo(lastX, padding.top + chartH);
     ctx.lineTo(padding.left, padding.top + chartH);
     ctx.closePath();
